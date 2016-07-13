@@ -1,7 +1,12 @@
-#[macro_use]
+extern crate crypto;
+
 mod errors;
+mod cutil;
+pub mod ed2k;
+pub mod md4;
+
 use std::net::{SocketAddr, ToSocketAddrs};
-use errors::AnidbError;
+use errors::{AnidbError, Result};
 //use std::io;
 use std::str;
 use std::thread;
@@ -9,7 +14,6 @@ use std::time::Duration;
 
 use std::net::UdpSocket;
 
-pub type Result<T> = std::result::Result<T, AnidbError>;
 
 pub struct Anidb {
     pub socket: UdpSocket,

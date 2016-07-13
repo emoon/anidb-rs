@@ -8,3 +8,6 @@ keywords = ["anidb", "database"]
 repository = "https://github.com/emoon/anidb-rs"
 homepage = "https://github.com/emoon/anidb-rs"
 
+[dependencies]
+rust-crypto = "^0.2"
+

@@ -3,6 +3,9 @@ use std::str;
 use std::fmt;
 use std::num;
 use std::error::Error;
+use std::result;
+
+pub type Result<T> = result::Result<T, AnidbError>;
 
 #[derive(Debug)]
 pub enum AnidbError {
