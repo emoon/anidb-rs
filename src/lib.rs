@@ -6,7 +6,7 @@ pub mod ed2k;
 pub mod md4;
 
 use std::net::{SocketAddr, ToSocketAddrs};
-use errors::{AnidbError, Result};
+pub use errors::{AnidbError, Result};
 //use std::io;
 use std::str;
 use std::thread;
@@ -14,16 +14,15 @@ use std::time::Duration;
 
 use std::net::UdpSocket;
 
-
 pub struct Anidb {
     pub socket: UdpSocket,
     pub address: SocketAddr,
     pub session: String,
 }
 
-pub struct ServerReply<'a> {
+pub struct ServerReply {
     pub code: usize,
-    pub data: &'a str,
+    pub data: String,
 }
 
 impl Anidb {
@@ -57,11 +56,9 @@ impl Anidb {
     /// ```
     ///
     pub fn login(&mut self, username: &str, password: &str) -> Result<()> {
-        let mut result = [0; 2048];
         let login_str = Self::format_login_string(username, password);
-        try!(self.socket.send(login_str.as_bytes()));
-        let len = try!(self.socket.recv(&mut result));
-        let reply = try!(Self::parse_reply(&result, len));
+
+        let reply = try!(self.send_wait_reply(&login_str));
 
         println!("Reply from server {}", reply.data);
 
@@ -83,16 +80,14 @@ impl Anidb {
     /// ```
     ///
     pub fn logout(&mut self) -> Result<()> {
-        let mut result = [0; 2048];
 
         if self.session == "" {
             return Err(AnidbError::StaticError("Not logged in"));
         }
 
-        let login_str = Self::format_logout_string(&self.session);
-        try!(self.socket.send(login_str.as_bytes()));
-        let len = try!(self.socket.recv(&mut result));
-        let reply = try!(Self::parse_reply(&result, len));
+        let logout_str = Self::format_logout_string(&self.session);
+
+        let reply = try!(self.send_wait_reply(&logout_str));
 
         println!("Reply from server {}", reply.data);
 
@@ -132,8 +127,15 @@ impl Anidb {
         let code = try!(code_str.parse::<usize>());
         Ok(ServerReply {
             code: code,
-            data: try!(str::from_utf8(&reply[4..len])),
+            data: String::from_utf8_lossy(&reply[4..len]).into_owned(),
         })
+    }
+
+    fn send_wait_reply(&self, message: &str) -> Result<ServerReply> {
+        let mut result = [0; 2048];
+        try!(self.socket.send(message.as_bytes()));
+        let len = try!(self.socket.recv(&mut result));
+        Self::parse_reply(&result, len)
     }
 
     fn format_logout_string(session_id: &str) -> String {
@@ -201,5 +203,3 @@ mod test_format {
         assert_eq!(logout_str, "LOGOUT s=abcd1234");
     }
 }
-
-
