@@ -10,10 +10,10 @@ static USERNAME: &'static str = "user";
 static PASSWORD: &'static str = "pass";
 
 fn login_logout() -> Result<()> {
-    let mut db = try!(Anidb::new(("api.anidb.net", 9000)));
-    try!(db.login(USERNAME, PASSWORD));
+    let mut db = Anidb::new(("api.anidb.net", 9000))?;
+    db.login(USERNAME, PASSWORD)?;
     db.wait_exec_command(500);  // wait 500 ms
-    try!(db.logout());
+    db.logout()?;
     println!("Evenything went ok!");
     Ok(())
 }

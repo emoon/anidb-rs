@@ -11,8 +11,8 @@ impl Ed2kHash {
     pub fn hash_file(filename: &str) -> Result<()> {
         let mut md4_digest = [0; 16];
 
-        let mut file = try!(File::open(filename));
-        let file_info = try!(file.metadata());
+        let mut file = File::open(filename)?;
+        let file_info = file.metadata()?;
         let file_size = file_info.len() as usize;
 
         let mut temp_buffer = vec![0; BLOCKSIZE].into_boxed_slice();
@@ -26,7 +26,7 @@ impl Ed2kHash {
         for _ in 0..blocks {
             let mut ctx_i = Md4::new();
 
-            let read_size = try!(file.read(&mut temp_buffer));
+            let read_size = file.read(&mut temp_buffer)?;
 
             ctx_i.input(&temp_buffer[..read_size]);
             ctx_i.result(&mut md4_digest);

@@ -13,7 +13,7 @@ pub struct MockServer {
 
 impl MockServer {
     pub fn new(port: u16) -> Result<MockServer> {
-        let socket = try!(UdpSocket::bind(("0.0.0.0", port)));
+        let socket = UdpSocket::bind(("0.0.0.0", port))?;
         Ok(MockServer { socket: socket })
     }
 

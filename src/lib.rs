@@ -34,8 +34,8 @@ impl Anidb {
     /// ```
     ///
     pub fn new<A: ToSocketAddrs>(addr: A) -> Result<Anidb> {
-        let socket = try!(UdpSocket::bind(("0.0.0.0", 9000)));
-        try!(socket.connect(&addr));
+        let socket = UdpSocket::bind(("0.0.0.0", 9000))?;
+        socket.connect(&addr)?;
 
         Ok(Anidb {
             socket: socket,
@@ -58,11 +58,11 @@ impl Anidb {
     pub fn login(&mut self, username: &str, password: &str) -> Result<()> {
         let login_str = Self::format_login_string(username, password);
 
-        let reply = try!(self.send_wait_reply(&login_str));
+        let reply = self.send_wait_reply(&login_str)?;
 
         println!("Reply from server {}", reply.data);
 
-        self.session = try!(Self::validate_auth_command(&reply));
+        self.session = Self::validate_auth_command(&reply)?;
 
         Ok(())
     }
@@ -80,14 +80,13 @@ impl Anidb {
     /// ```
     ///
     pub fn logout(&mut self) -> Result<()> {
-
         if self.session == "" {
             return Err(AnidbError::StaticError("Not logged in"));
         }
 
         let logout_str = Self::format_logout_string(&self.session);
 
-        let reply = try!(self.send_wait_reply(&logout_str));
+        let reply = self.send_wait_reply(&logout_str)?;
 
         println!("Reply from server {}", reply.data);
 
@@ -123,8 +122,8 @@ impl Anidb {
         if len < 5 {
             return Err(AnidbError::StaticError("Reply less than 5 chars"));
         }
-        let code_str = try!(str::from_utf8(&reply[0..3]));
-        let code = try!(code_str.parse::<usize>());
+        let code_str = str::from_utf8(&reply[0..3])?;
+        let code = code_str.parse::<usize>()?;
         Ok(ServerReply {
             code: code,
             data: String::from_utf8_lossy(&reply[4..len]).into_owned(),
@@ -133,8 +132,8 @@ impl Anidb {
 
     fn send_wait_reply(&self, message: &str) -> Result<ServerReply> {
         let mut result = [0; 2048];
-        try!(self.socket.send(message.as_bytes()));
-        let len = try!(self.socket.recv(&mut result));
+        self.socket.send(message.as_bytes())?;
+        let len = self.socket.recv(&mut result)?;
         Self::parse_reply(&result, len)
     }
 
